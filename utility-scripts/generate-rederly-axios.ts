@@ -1,8 +1,6 @@
 #!/usr/bin/env -S npx ts-node
 import routesObject from '@rederly/backend-validation/lib/validations/routes';
 import fs from 'fs';
-const statusKeyRegex = /^status(\d+)Schema$/;
-const requestPartRegex = /^(params|query|body)Schema$/;
 const destFile = './src/rederly-axios.ts';
 
 const fileHead =

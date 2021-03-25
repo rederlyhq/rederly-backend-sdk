@@ -1,9 +1,10 @@
 import fse = require('fs-extra');
 import path = require('path');
-import logger from '../src/sharedLogger';
+// import logger from '../src/sharedLogger';
 import * as _ from 'lodash';
 import { Dictionary } from 'lodash';
 
+const logger = console;
 const fsPromises = fse.promises;
 
 type RecursiveListFilesInDirectoryFilterFunction = (filePath: string) => boolean;
@@ -24,22 +25,25 @@ export const listFilters = {
     },
     matches: (pattern: RegExp): RecursiveListFilesInDirectoryFilterFunction => (filePath: string): boolean => {
         return pattern.test(filePath);
-    }
+    },
+    basenameNotEqual: (name: string) => (filePath: string): boolean => path.basename(filePath) !== name
 };
 
-export const recursiveListFilesInDirectory = async (filePath: string, result: string[], filter: RecursiveListFilesInDirectoryFilterFunction): Promise<string[]> => {
+export const recursiveListFilesInDirectory = async (filePath: string, result: string[], filter?: RecursiveListFilesInDirectoryFilterFunction, filterDirectory?: RecursiveListFilesInDirectoryFilterFunction): Promise<string[]> => {
     const fileStats = await fsPromises.lstat(filePath);
     if (fileStats.isDirectory()) {
-        const files = await fsPromises.readdir(filePath);
-        const promises = files.map(async (listFilePath: string) => {
-            const resultPath = path.resolve(path.join(filePath, listFilePath));
-            await recursiveListFilesInDirectory(resultPath, result, filter);
-        });
-        await Promise.all(promises);
+        if (filterDirectory?.(filePath) ?? true) {
+            const files = await fsPromises.readdir(filePath);
+            const promises = files.map(async (listFilePath: string) => {
+                const resultPath = path.resolve(path.join(filePath, listFilePath));
+                await recursiveListFilesInDirectory(resultPath, result, filter, filterDirectory);
+            });
+            await Promise.all(promises);
+        }
     } else if (fileStats.isSymbolicLink()) {
         logger.debug(`recursiveListFilesInDirectory: skipping symbolic link: ${filePath}`);
     } else if (fileStats.isFile()) {
-        if (filter(filePath)) {
+        if (filter?.(filePath) ?? true) {
             result.push(filePath);
         }
     } else if (fileStats.isSymbolicLink()) {

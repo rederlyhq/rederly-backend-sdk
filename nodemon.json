@@ -1,0 +1,19 @@
+{
+    "ignoreRoot": [".git"],
+    "ignore": [
+        "/rederly-axios.ts",
+        
+        "**/*.test.ts",
+        "**/*.spec.ts"
+    ],
+    "watch": [
+        "src",
+        "node_modules/@rederly/**/lib/**"
+    ],
+    "ext": "json,js,ts",
+    "execMap": {
+        "ts": "node --require ts-node/register"
+    },
+    "signal": "SIGINT",
+    "delay": "1000"
+}

@@ -5,13 +5,15 @@
   "main": "lib/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "npm run generate:rederly-axios && tsc",
-    "generate:rederly-axios": "./utility-scripts/generate-rederly-axios.ts"
+    "clean": "node ./utility-scripts/clean.js",
+    "build": "npm run clean && npm run generate:rederly-axios && tsc",
+    "build:watch": "nodemon -x npm run build",
+    "generate:rederly-axios": "ts-node ./utility-scripts/generate-rederly-axios.ts"
   },
   "author": "Rederly",
   "license": "GPL-3.0-or-later",
   "dependencies": {
-    "@rederly/backend-validation": "file:../backend-validation/rederly-backend-validation-0.0.0.tgz",
+    "@rederly/backend-validation": "file:../backend-validations/rederly-backend-validation-0.0.0.tgz",
     "axios": "^0.21.1",
     "lodash": "^4.17.21"
   },
@@ -19,6 +21,7 @@
     "@types/lodash": "^4.14.168",
     "@types/node": "^14.14.35",
     "fs-extra": "^9.1.0",
+    "nodemon": "^2.0.7",
     "ts-node": "^9.1.1",
     "typescript": "^4.2.3"
   }
