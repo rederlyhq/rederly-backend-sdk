@@ -1,0 +1,25 @@
+{
+  "name": "@rederly/rederly-backend-sdk",
+  "version": "0.0.0",
+  "description": "This is the axios layer for the frontend to talk to the backend.",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npm run generate:rederly-axios && tsc",
+    "generate:rederly-axios": "./utility-scripts/generate-rederly-axios.ts"
+  },
+  "author": "Rederly",
+  "license": "GPL-3.0-or-later",
+  "dependencies": {
+    "@rederly/backend-validation": "file:../backend-validation/rederly-backend-validation-0.0.0.tgz",
+    "axios": "^0.21.1",
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.168",
+    "@types/node": "^14.14.35",
+    "fs-extra": "^9.1.0",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.2.3"
+  }
+}
