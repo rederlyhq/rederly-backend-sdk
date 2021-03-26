@@ -45,7 +45,6 @@ interface HttpMethodObject {
             orderedRequestGenerics.push(hasBody ? `index.${httpMethodObject.operationId}.IBody` : 'never');
             const requestGenerics = orderedRequestGenerics.join(', ');
 
-            const responseParts = httpMethodObject.responseCodes.map(code => `index.${httpMethodObject.operationId}.I${code}`).join(' | ');
             let configType = `RederlyAxiosRequestConfig<${requestGenerics}>`;
             if (orderedRequestParts.length > 0) configType = `RequiredBy<${configType}, ${orderedRequestParts.join(' | ')}>`;
             fs.promises.appendFile(destFile,
@@ -56,7 +55,7 @@ ${httpMethodObject.operationId} (config: ${configType}) {
         method: '${httpMethodObject.method}' as Method,
         url: '${route}'
     }
-    return this.typedRequest<${requestGenerics}, ${responseParts}>(adjustedConfig);
+    return this.typedRequest<${requestGenerics}, ${httpMethodObject.responseCodes.length > 0 ? `index.${httpMethodObject.operationId}.IResponse` : 'never'}>(adjustedConfig);
 };
 `)
         }
