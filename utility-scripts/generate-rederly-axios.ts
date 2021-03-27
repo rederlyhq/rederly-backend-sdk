@@ -8,6 +8,7 @@ const fileHead =
 import { Method } from 'axios';
 import * as index from '@rederly/backend-validation'
 import { AxiosWrapper, RequiredBy, RederlyAxiosRequestConfig } from "./axios-utilities";
+import { sharedLogger } from '@rederly/rederly-utils';
 export class RederlyAxiosWrapper extends AxiosWrapper {
 `;
 
@@ -47,15 +48,29 @@ interface HttpMethodObject {
 
             let configType = `RederlyAxiosRequestConfig<${requestGenerics}>`;
             if (orderedRequestParts.length > 0) configType = `RequiredBy<${configType}, ${orderedRequestParts.join(' | ')}>`;
-            fs.promises.appendFile(destFile,
+            await fs.promises.appendFile(destFile,
 `
-${httpMethodObject.operationId} (config: ${configType}) {
+async ${httpMethodObject.operationId} (config: ${configType}) {
     const adjustedConfig = {
         ...config,
         method: '${httpMethodObject.method}' as Method,
         url: '${route}'
     }
-    return this.typedRequest<${requestGenerics}, ${httpMethodObject.responseCodes.length > 0 ? `index.${httpMethodObject.operationId}.IResponse` : 'never'}>(adjustedConfig);
+    const result = await this.typedRequest<${requestGenerics}, ${httpMethodObject.responseCodes.length > 0 ? `index.${httpMethodObject.operationId}.IResponse` : 'never'}>(adjustedConfig);
+    const schemaKey = \`status\${result.status}Schema\`;
+    const schema = schemaKey in index.${httpMethodObject.operationId} && index.${httpMethodObject.operationId}[schemaKey];
+    if (schema) {
+        this.validate({
+            data: result.data,
+            httpMethod: index.${httpMethodObject.operationId}.httpMethod,
+            route: index.${httpMethodObject.operationId}.route,
+            schema: schema
+        });
+    } else {
+        sharedLogger.error(\`Invalid response code "\${result.status}" for "\${index.coursesPostCourses.httpMethod}" "\${index.coursesPostCourses.route}"\`);
+        throw new Error(\`Unexpected response \${result.status}\`);
+    }
+    return result;
 };
 `)
         }

@@ -1,12 +1,15 @@
 import Axios, {AxiosInstance, AxiosRequestConfig} from 'axios';
+import { validateAndCheckForAdditionalKeys, AJVSchema } from '@rederly/backend-validation/lib/rederly-ajv-wrapper'
+import _ from 'lodash';
+import { sharedLogger, _reddash } from '@rederly/rederly-utils';
 
 export type RequiredBy<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>
 
 type TypedAxiosRequestConfig<ParamsType = unknown, QueryType = unknown, BodyType = unknown> =
 {
-    params?: QueryType,
-    pathParams?: ParamsType,
-    data?: BodyType
+    params?: QueryType;
+    pathParams?: ParamsType;
+    data?: BodyType;
 }
 &
 Omit<AxiosRequestConfig, 'params' | 'data'>;
@@ -19,6 +22,12 @@ type RederlyAxiosWrapperOptions = {
     axiosConfig?: AxiosRequestConfig;
 };
 
+interface IValidateOptions<InputType> {
+    schema: AJVSchema;
+    data: InputType;
+    route: string;
+    httpMethod: string;
+};
 
 export class AxiosWrapper {
     public readonly axios: AxiosInstance;
@@ -46,5 +55,21 @@ export class AxiosWrapper {
         // Not support by axios, deleting to avoid conflicts in future
         delete config.pathParams;
         return this.axios.request<ResponseType>(config);
-    };
+    }
+
+    validate<ValidatedType = unknown, InputType = unknown>({
+        schema,
+        data,
+        route,
+        httpMethod
+    }: IValidateOptions<InputType>): ValidatedType {
+        const {result, additionalKeys} = validateAndCheckForAdditionalKeys<ValidatedType, InputType>({
+            data: data,
+            schema: schema,
+        });
+        if (additionalKeys.length > 0) {
+            sharedLogger.warn(`Additional keys found on route "${httpMethod}" "${route}" [${additionalKeys.join(', ')}]`);
+        }
+        return result;
+    }
 }
